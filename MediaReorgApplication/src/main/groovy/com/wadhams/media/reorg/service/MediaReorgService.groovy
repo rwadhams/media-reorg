@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat
 import com.drew.imaging.ImageMetadataReader
 import com.drew.imaging.ImageProcessingException
 import com.drew.metadata.Metadata
+import com.drew.metadata.avi.AviDirectory
 import com.drew.metadata.exif.ExifSubIFDDirectory
 import com.drew.metadata.mov.metadata.QuickTimeMetadataDirectory
 import com.wadhams.media.reorg.context.AppContext
@@ -15,7 +16,8 @@ import com.wadhams.media.reorg.dto.AppMedia
 import com.wadhams.media.reorg.type.Media
 
 class MediaReorgService {
-	SimpleDateFormat sdf = new SimpleDateFormat('yyyyMMdd_HHmmss')
+	SimpleDateFormat sdf1 = new SimpleDateFormat('yyyyMMdd_HHmmss')
+	SimpleDateFormat sdf2 = new SimpleDateFormat('EEE MMM dd hh:mm:ss yyyy')	//Sat Jun  8 17:33:06 2013
 	NumberFormat nf6 = NumberFormat.getNumberInstance() 
 	
 	def MediaReorgService() {
@@ -54,10 +56,12 @@ class MediaReorgService {
 //			}
 //		}
 		
-		Date creationDate
+		Date creationDate = null
 		if (media == Media.JPG) {
 			ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class)
-			creationDate = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, TimeZone.getDefault())
+			if (directory) {
+				creationDate = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, TimeZone.getDefault())
+			}
 		}
 		else if (media == Media.MOV) {
 			QuickTimeMetadataDirectory directory = metadata.getFirstDirectoryOfType(QuickTimeMetadataDirectory.class)
@@ -66,6 +70,11 @@ class MediaReorgService {
 		else if (media == Media.HEIC) {
 			ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class)
 			creationDate = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, TimeZone.getDefault())
+		}
+		else if (media == Media.AVI) {
+			AviDirectory directory = metadata.getFirstDirectoryOfType(AviDirectory.class)
+			String sDate = (String)directory.getObject(AviDirectory.TAG_DATETIME_ORIGINAL)
+			creationDate = sdf2.parse(sDate)
 		}
 		else {
 			//println "Unable to find creation date for: ${f.absolutePath}"
@@ -80,7 +89,7 @@ class MediaReorgService {
 		StringBuilder sb = new StringBuilder()
 		
 		if (am.creationDate) {
-			sb.append(sdf.format(am.creationDate))
+			sb.append(sdf1.format(am.creationDate))
 		}
 		else {
 			sb.append(groupDate)
@@ -106,6 +115,7 @@ class MediaReorgService {
 	def report(AppContext context) {
 		int jpgCount = 0
 		int movCount = 0
+		int aviCount = 0
 		int heicCount = 0
 		int unknownCount = 0
 		int noCreationDateCount = 0
@@ -121,6 +131,9 @@ class MediaReorgService {
 			}
 			else if (am.media == Media.MOV) {
 				movCount++
+			}
+			else if (am.media == Media.AVI) {
+				aviCount++
 			}
 			else if (am.media == Media.HEIC) {
 				heicCount++
@@ -142,6 +155,7 @@ class MediaReorgService {
 		println '-----------------'
 		println "jpg files..........: $jpgCount"
 		println "mov files..........: $movCount"
+		println "avi files..........: $aviCount"
 		println "heic files.........: $heicCount"
 		println "unknown media......: $unknownCount"
 		println ''
@@ -152,7 +166,7 @@ class MediaReorgService {
 	def renameFile(File f, String newFilename) {
 		String rename = "${f.parent}\\$newFilename"
 		println "Renaming...${f.path} to: $rename"
-		//f.renameTo(rename)
+		f.renameTo(rename)
 	}
 
 }
