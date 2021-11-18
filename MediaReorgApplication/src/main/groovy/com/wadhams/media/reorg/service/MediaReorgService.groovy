@@ -14,6 +14,7 @@ import com.drew.metadata.mov.metadata.QuickTimeMetadataDirectory
 import com.wadhams.media.reorg.context.AppContext
 import com.wadhams.media.reorg.dto.AppMedia
 import com.wadhams.media.reorg.type.Media
+import com.wadhams.media.reorg.type.RenameMethod
 
 class MediaReorgService {
 	SimpleDateFormat sdf1 = new SimpleDateFormat('yyyyMMdd_HHmmss')
@@ -85,17 +86,25 @@ class MediaReorgService {
 		return creationDate
 	}
 
-	String buildNewFilename(AppMedia am, String groupName, String groupDate) {
+	String buildNewFilename(AppMedia am, AppContext context) {
 		StringBuilder sb = new StringBuilder()
 		
-		if (am.creationDate) {
-			sb.append(sdf1.format(am.creationDate))
+		String prefix
+		if (context.renameMethod == RenameMethod.CreationDate) {
+			if (am.creationDate) {
+				prefix = sdf1.format(am.creationDate)
+			}
+			else {
+				return null		//renameMethod.CreationDate requires a creation date, otherwise the file is never renamed.
+			}
 		}
-		else {
-			sb.append(groupDate)
+		else {	//renameMethod.Timestamp
+			prefix = context.groupDate
 		}
+		
+		sb.append(prefix)
 		sb.append('_')
-		sb.append(groupName)
+		sb.append(context.groupName)
 		sb.append('_')
 		sb.append(nf6.format(am.sequenceNumber))
 		sb.append('.')
@@ -106,7 +115,7 @@ class MediaReorgService {
 			sb.append(am.extension)
 		}
 		else {
-			return null		//catastrophic
+			return null		//catastrophic problem with file extension
 		}
 		
 		return sb.toString()
@@ -117,15 +126,18 @@ class MediaReorgService {
 		int movCount = 0
 		int aviCount = 0
 		int heicCount = 0
-		int unknownCount = 0
+		int unknownMediaCount = 0
 		int noCreationDateCount = 0
 		
 		context.appMediaList.each {am ->
 			println "Filename...: ${am.file.name}"
-			if (!am.creationDate) {
+
+			if (context.renameMethod == RenameMethod.CreationDate && am.creationDate == null) {
 				println "\t*** No creation date"
 				noCreationDateCount++
 			}
+			
+			//Media counts
 			if (am.media == Media.JPG) {
 				jpgCount++
 			}
@@ -140,15 +152,10 @@ class MediaReorgService {
 			}
 			else {
 				println "\t*** *** Unknown media"
-				unknownCount++
+				unknownMediaCount++
 			}
-			String newFilename = buildNewFilename(am, context.groupName, context.groupDate)
-			if (newFilename) {
-				println "\tProposed new filename: $newFilename"
-			}
-			else {
-				println '*** UNABLE TO CREATE A NEW FILENAME. PLEASE INVESTIGATE ***'
-			}
+			
+			println "\tProposed new filename: ${am.newFilename}"
 		}
 		println ''
 		println 'File Count Totals'
@@ -157,10 +164,12 @@ class MediaReorgService {
 		println "mov files..........: $movCount"
 		println "avi files..........: $aviCount"
 		println "heic files.........: $heicCount"
-		println "unknown media......: $unknownCount"
+		println "unknown media......: $unknownMediaCount"
 		println ''
-		println "No creation date...: $noCreationDateCount"
-		println ''
+		if (context.renameMethod == RenameMethod.CreationDate) {
+			println "No creation date...: $noCreationDateCount"
+			println ''
+		}
 	}
 	
 	def renameFile(File f, String newFilename) {

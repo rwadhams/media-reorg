@@ -3,6 +3,7 @@ package com.wadhams.media.reorg.controller
 import com.wadhams.media.reorg.context.AppContext
 import com.wadhams.media.reorg.service.MediaReorgService
 import com.wadhams.media.reorg.type.Action
+import com.wadhams.media.reorg.type.RenameMethod
 
 class MediaReorgController {
 	AppContext context
@@ -18,25 +19,31 @@ class MediaReorgController {
 		println "Number of AppMedia found: ${context.appMediaList.size()}"
 		println ''
 		
-		//augment AppMedia with creationDate
-		context.appMediaList.each {am ->
-			am.creationDate = mrService.findCreationDate(am.file, am.media)
-		}
-
-		mrService.report(context)
-		println ''
-
-		if (context.action == Action.Rename) {
+		//augment AppMedia with creationDate, if RenameMethod.CreationDate
+		if (context.renameMethod == RenameMethod.CreationDate) {
 			context.appMediaList.each {am ->
-				String newFilename = mrService.buildNewFilename(am, context.groupName, context.groupDate)
-				mrService.renameFile(am.file, newFilename)
+				am.creationDate = mrService.findCreationDate(am.file, am.media)
 			}
-			println ''
+		} 
+
+		//buildNewFilename
+		context.appMediaList.each {am ->
+			am.newFilename = mrService.buildNewFilename(am, context)
 		}
 		
-		context.appMediaList.each {am ->
-			println am
+		//Action.Report
+		if (context.action == Action.Report) {
+			mrService.report(context)
+			println ''
 		}
+		else {	//Action.Rename
+			context.appMediaList.each {am ->
+				if (am.newFilename) {
+					mrService.renameFile(am.file, am.newFilename)
+				}
+			}
+		}
+
 		println ''
 	}
 }

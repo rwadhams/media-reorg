@@ -16,6 +16,7 @@ class AppMedia {
 	Media media
 	String extension
 	int sequenceNumber
+	String newFilename
 
 	def AppMedia(File f) {
 		this.file = f
@@ -28,5 +29,6 @@ class AppMedia {
 			}
 		}
 		this.sequenceNumber = ++STARTING_SEQUENCE
+		this.newFilename = null
 	}
 }

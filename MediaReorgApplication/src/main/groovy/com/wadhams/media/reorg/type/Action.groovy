@@ -1,8 +1,8 @@
 package com.wadhams.media.reorg.type
 
 enum Action {
+	Report('REPORT'),
 	Rename('RENAME'),
-	Review('REVIEW'),
 	Unknown('Unknown');
 	
 	private static EnumSet<Action> allEnums = EnumSet.allOf(Action.class)
@@ -24,12 +24,10 @@ enum Action {
 		}
 		else {
 			println 'findByName() was passed a blank or null name'
-			println ''
 			return Action.Unknown
 		}
 		
-		println "Unknown action text: $text"
-		println ''
+		println "Unknown \'Action\' lookup text: $text"
 		return Action.Unknown
 	}
 
