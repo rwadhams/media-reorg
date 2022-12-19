@@ -13,6 +13,7 @@ class AppMedia {
 	
 	File file
 	Date creationDate
+	Date lastModified
 	Media media
 	String extension
 	int sequenceNumber

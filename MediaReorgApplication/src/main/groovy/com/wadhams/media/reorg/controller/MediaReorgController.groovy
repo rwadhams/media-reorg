@@ -15,7 +15,7 @@ class MediaReorgController {
 	}
 	
 	def execute() {
-		context.appMediaList = mrService.fileAllFiles(context.folderPath)
+		context.appMediaList = mrService.findAllFiles(context.folderPath)
 		println "Number of AppMedia found: ${context.appMediaList.size()}"
 		println ''
 		
@@ -23,6 +23,11 @@ class MediaReorgController {
 		if (context.renameMethod == RenameMethod.CreationDate) {
 			context.appMediaList.each {am ->
 				am.creationDate = mrService.findCreationDate(am.file, am.media)
+			}
+		}
+		else if (context.renameMethod == RenameMethod.LastModified) {
+			context.appMediaList.each {am ->
+				am.lastModified = mrService.findLastModified(am.file)
 			}
 		} 
 

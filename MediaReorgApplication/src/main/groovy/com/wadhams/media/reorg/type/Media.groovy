@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 enum Media {
 	JPG(['JPG','JPEG'], 'JPG'),
 	MOV(['MOV'], 'MOV'),
+	MP4(['MP4'], 'MP4'),
 	AVI(['AVI'], 'AVI'),
 	HEIC(['HEIC'], 'HEIC'),
 	Unknown(['Unknown'], '');

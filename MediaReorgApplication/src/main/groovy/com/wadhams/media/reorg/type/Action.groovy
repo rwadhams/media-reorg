@@ -1,23 +1,23 @@
 package com.wadhams.media.reorg.type
 
 enum Action {
-	Report('REPORT'),
-	Rename('RENAME'),
-	Unknown('Unknown');
+	Report(['REPORT', 'REP']),
+	Rename(['RENAME', 'REN']),
+	Unknown(['Unknown']);
 	
 	private static EnumSet<Action> allEnums = EnumSet.allOf(Action.class)
 	
-	private final String name
+	private final List<String> names
 	
-	Action(String name) {
-		this.name = name
+	Action(List<String> names) {
+		this.names = names
 	}
 	
 	public static Action findByName(String text) {
 		if (text) {
 			text = text.toUpperCase()
 			for (Action e : allEnums) {
-				if (e.name.equals(text)) {
+				if (e.names.contains(text)) {
 					return e
 				}
 			}

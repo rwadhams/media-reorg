@@ -28,7 +28,7 @@ class MediaReorgService {
 
 	}
 	
-	List<AppMedia> fileAllFiles(String folderPath) {
+	List<AppMedia> findAllFiles(String folderPath) {
 		List<AppMedia> appMediaList = []
 		
 		File dir = new File(folderPath)
@@ -46,7 +46,8 @@ class MediaReorgService {
 			metadata = ImageMetadataReader.readMetadata(f)
 		}
 		catch(ImageProcessingException ipe) {
-			println "${ipe.message}"
+			println "ImageProcessingException on ${f.name}: ${ipe.message}"
+			println ''
 			return null
 		}
 		
@@ -86,6 +87,14 @@ class MediaReorgService {
 		return creationDate
 	}
 
+	Date findLastModified(File f) {
+		long lm = f.lastModified()
+		
+		Date lastModified = new Date(lm)
+		
+		return lastModified
+	}
+
 	String buildNewFilename(AppMedia am, AppContext context) {
 		StringBuilder sb = new StringBuilder()
 		
@@ -96,6 +105,14 @@ class MediaReorgService {
 			}
 			else {
 				return null		//renameMethod.CreationDate requires a creation date, otherwise the file is never renamed.
+			}
+		}
+		else if (context.renameMethod == RenameMethod.LastModified) {
+			if (am.lastModified) {
+				prefix = sdf1.format(am.lastModified)
+			}
+			else {
+				return null		//renameMethod.LastModified requires a creation date, otherwise the file is never renamed.
 			}
 		}
 		else {	//renameMethod.Timestamp
@@ -124,10 +141,12 @@ class MediaReorgService {
 	def report(AppContext context) {
 		int jpgCount = 0
 		int movCount = 0
+		int mp4Count = 0
 		int aviCount = 0
 		int heicCount = 0
 		int unknownMediaCount = 0
 		int noCreationDateCount = 0
+		int noLastModifiedCount = 0
 		
 		context.appMediaList.each {am ->
 			println "Filename...: ${am.file.name}"
@@ -136,6 +155,10 @@ class MediaReorgService {
 				println "\t*** No creation date"
 				noCreationDateCount++
 			}
+			else if (context.renameMethod == RenameMethod.LastModified && am.lastModified == null) {
+				println "\t*** No last modified"
+				noLastModifiedCount++
+			}
 			
 			//Media counts
 			if (am.media == Media.JPG) {
@@ -143,6 +166,9 @@ class MediaReorgService {
 			}
 			else if (am.media == Media.MOV) {
 				movCount++
+			}
+			else if (am.media == Media.MP4) {
+				mp4Count++
 			}
 			else if (am.media == Media.AVI) {
 				aviCount++
@@ -162,12 +188,17 @@ class MediaReorgService {
 		println '-----------------'
 		println "jpg files..........: $jpgCount"
 		println "mov files..........: $movCount"
+		println "mp4 files..........: $mp4Count"
 		println "avi files..........: $aviCount"
 		println "heic files.........: $heicCount"
 		println "unknown media......: $unknownMediaCount"
 		println ''
 		if (context.renameMethod == RenameMethod.CreationDate) {
 			println "No creation date...: $noCreationDateCount"
+			println ''
+		}
+		else if (context.renameMethod == RenameMethod.LastModified) {
+			println "No last modified...: $noLastModifiedCount"
 			println ''
 		}
 	}

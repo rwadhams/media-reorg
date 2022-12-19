@@ -2,6 +2,7 @@ package com.wadhams.media.reorg.type
 
 enum RenameMethod {
 	CreationDate(['CREATION_DATE', 'CD']),
+	LastModified(['LAST_MODIFIED', 'LM']),
 	Timestamp(['TIMESTAMP', 'TS']),
 	Unknown(['Unknown']);
 	

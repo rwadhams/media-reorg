@@ -10,10 +10,11 @@ class MediaReorgApp {
 		println 'MediaReorgApp started...'
 		println ''
 		println 'Usage: MediaReorgApp <action> <renameMethod> <folderPath> <groupName> <groupDate>'
-		println '<action> = REPORT | RENAME'
-		println '<renameMethod> = CREATION_DATE | cd | TIMESTAMP | ts'
+		println '<action> = REPORT | rep | RENAME | ren'
+		println '<renameMethod> = CREATION_DATE | cd | TIMESTAMP | ts | LAST_MODIFIED | lm'
 		println "\tCREATION_DATE will try to use the creation date of the media in the new filename"
-		println "\tTIMESTAMP will use the <groupDate> in the filename ignoring creation date completely"
+		println "\tLAST_MODIFIED will try to use the last modified date of the media in the new filename"
+		println "\tTIMESTAMP will use the <groupDate> in the filename ignoring creation date and last modified completely"
 		println '<groupDate> is only required when using a renameMethod of TIMESTAMP'
 		println ''
 		
